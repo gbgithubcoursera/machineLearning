@@ -219,7 +219,10 @@ confusionMatrix(testData$classe, predictRf)</code></pre>
 ## Detection Prevalence   0.2845   0.1935   0.1743   0.1638   0.1839
 ## Balanced Accuracy      0.9967   0.9961   0.9949   0.9956   0.9988</code></pre>
 <pre class="r"><code># postResample Calculates performance across resamples
-accuracy &lt;- postResample(predictRf, testData$classe)</code></pre>
+accuracy &lt;- postResample(predictRf, testData$classe)
+accuracy</code></pre>
+<pre><code>##  Accuracy     Kappa 
+## 0.9942226 0.9926907</code></pre>
 <p>From above output from the Confusion Matrix outputs for both the Decision Tree and the Random Forests Modeling, it’s noted that the Random Forests algorithm has a better accuracy 99.42% compared to 68.79% for Decision Tree algorithm, hence the rest of the report will be based on the Random Forests algorithm data modeling.</p>
 </div>
 <div id="out-of-sample-error" class="section level3">

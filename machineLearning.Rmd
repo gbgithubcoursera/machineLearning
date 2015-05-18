@@ -14,7 +14,7 @@ In statistical data modeling, statistical tests of a model's forecast performanc
 The second split normally called the testing  data set is used to evaluate forecasting performance, based on the model built using our Training Data set. It's this out-of-sample data that will be the basis of calculating our accuracy or perfomacy errors, since empirical evidence based on out-of-sample forecast performance is generally considered more trustworthy than evidence based on in-sample performance, which can be more sensitive to outliers and data mining. Out-of-sample forecasts also better reflect the information available to the forecaster in "real time".
 
 ### Preparing
-```{r, results='hide'}
+```{r}
 library(caret)
 library(rpart)
 library(rpart.plot)
@@ -83,6 +83,7 @@ confusionMatrix(testData$classe, predictRf)
 
 # postResample Calculates performance across resamples
 accuracy <- postResample(predictRf, testData$classe)
+accuracy
 ```
 
 From above output from the Confusion Matrix outputs for both the Decision Tree and the Random Forests Modeling, it's noted that the Random Forests algorithm has a better accuracy 99.42% compared to 68.79% for Decision Tree algorithm, hence the rest of the report will be based on the Random Forests algorithm data modeling.
