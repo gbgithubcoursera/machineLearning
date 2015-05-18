@@ -76,7 +76,9 @@ library(rpart.plot)
 library(randomForest)</code></pre>
 <pre><code>## randomForest 4.6-10
 ## Type rfNews() to see new features/changes/bug fixes.</code></pre>
-<pre class="r"><code>training&lt;-read.csv(&quot;pml-training.csv&quot;,na.strings=c(&quot;NA&quot;,&quot;&quot;))
+<pre class="r"><code>library(ggplot2)
+
+training&lt;-read.csv(&quot;pml-training.csv&quot;,na.strings=c(&quot;NA&quot;,&quot;&quot;))
 testing&lt;-read.csv(&quot;pml-testing.csv&quot;,na.strings=c(&quot;NA&quot;,&quot;&quot;))</code></pre>
 </div>
 <div id="data-exploring" class="section level3">
