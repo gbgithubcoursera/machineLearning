@@ -1,0 +1,119 @@
+---
+title: "Machine Learning Prediction"
+author: "GB"
+date: "Friday, May 15, 2015"
+output: html_document
+---
+
+## Summary
+The goal of the project is to built the model that predicts the manner in which the exercise was done and data that was used. The report describes and details the steps how the model was built, detailing the used cross validation model and thinking behind the expected out of sample error is, and variables choosen that were used in the model.  
+
+### Out-Sample-Error
+In statistical data modeling, statistical tests of a model's forecast performance are commonly conducted by splitting a given data set into an in-sample period, which is normally called Training Data set and is used for the initial parameter estimation and model selection.
+
+The second split normally called the testing  data set is used to evaluate forecasting performance, based on the model built using our Training Data set. It's this out-of-sample data that will be the basis of calculating our accuracy or perfomacy errors, since empirical evidence based on out-of-sample forecast performance is generally considered more trustworthy than evidence based on in-sample performance, which can be more sensitive to outliers and data mining. Out-of-sample forecasts also better reflect the information available to the forecaster in "real time".
+
+### Preparing
+```{r, results='hide'}
+library(caret)
+library(rpart)
+library(rpart.plot)
+library(randomForest)
+
+training<-read.csv("pml-training.csv",na.strings=c("NA",""))
+testing<-read.csv("pml-testing.csv",na.strings=c("NA",""))
+```
+
+### Data Exploring
+```{r}
+dim(training)
+unique(training$classe)
+table(training$classe)
+```
+There are 19622 observation in traning dataset, including 160 variables
+
+### Data Cleasing
+Since we have a lot of variables containing NA values, these will be removed as they can distort our results and also variables that do not add value will be removed 
+```{r}
+NA_Count <- sapply(1:dim(training)[2],function(x)sum(is.na(training[,x])))
+NA_list<- which(NA_Count>0)
+
+training <- training[,-NA_list]
+training <- training[,-c(1:7)]
+training$classe = factor(training$classe)
+
+# Similarily process the testing data set
+testing <- testing[,-NA_list]
+testing <- testing[,-c(1:7)]
+```
+
+### Partitioning our training data into training data (trainData) and validation data (testData)
+```{r}
+set.seed(1234)
+inTrain <- createDataPartition(training$classe,p=0.70,list=F)
+trainData <- training[inTrain,]
+testData <- training[-inTrain,]
+```
+Two data modeling algorithms are going to be compared and the one with the best accuracy will be used for prediction on the testing data and calculating out-of-sample error.
+The two algorithms in considering are:
+
+* Classification Decision Tree (rpart)
+* Random Forests (rf from caret)
+
+### Decision Tree Data Modeling
+```{r}
+modTreeFit <- rpart(classe ~ ., data = trainData, method="class")
+predictionClass <- predict(modTreeFit, testData, type = "class")
+rpart.plot(modTreeFit, main="Classification Tree", extra=102, under=TRUE, faclen=0)
+
+confusionMatrix(predictionClass, testData$classe)
+```
+
+### Cross Validation Data Modeling
+```{r}
+cv3 <- trainControl(method="cv",number=5)
+modrf <- train(classe~., data=trainData, method="rf",trControl=cv3,ntree=250)
+modrf
+```
+
+### Predict and calculate out-of-sample error on the validation data set.
+```{r}
+predictRf <- predict(modrf, testData)
+confusionMatrix(testData$classe, predictRf)
+
+# postResample Calculates performance across resamples
+accuracy <- postResample(predictRf, testData$classe)
+```
+
+From above output from the Confusion Matrix outputs for both the Decision Tree and the Random Forests Modeling, it's noted that the Random Forests algorithm has a better accuracy 99.42% compared to 68.79% for Decision Tree algorithm, hence the rest of the report will be based on the Random Forests algorithm data modeling.
+
+### Out-of-sample error
+```{r}
+# 1 minus the model accuracy
+oose <- 1 - as.numeric(confusionMatrix(testData$classe, predictRf)$overall[1])
+oose
+```
+So, the estimated accuracy of the model is **`r round(accuracy["Accuracy"] * 100, digits = 2)`%** and the estimated out-of-sample error is **`r round(oose *100, digits = 2)`%**.
+
+### Predict on the Testing Data Set
+Now, applying the model to the original testing data set downloaded from the data source and cleansed from above. 
+```{r}
+result <- predict(modrf, testing)
+result
+```
+### Prediction Assignment Submission
+The function creates the files to apply the machine learning algorithm  built to each of the 20 test cases in the testing data set. 
+ 
+```{r}
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+pml_write_files(result)
+```
+### Conclusion
+The random forest appraoch with cross validation proved to be extremely accurate than the decision tree approach. 
+In this analysis one part that was not considered was how differet predictor correlations could affect the predictions in this particular analysis.
